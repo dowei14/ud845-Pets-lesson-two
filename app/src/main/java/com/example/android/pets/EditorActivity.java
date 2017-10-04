@@ -74,8 +74,13 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         mCurrentUri = getIntent().getData();
         if (mCurrentUri == null)
             setTitle(getString(R.string.editor_activity_title_new_pet));
-        else
+        else{
             setTitle(getString(R.string.editor_activity_title_edit_pet));
+            // Prepare the loader.  Either re-connect with an existing one,
+            // or start a new one.
+            getSupportLoaderManager().initLoader(PET_LOADER, null, this);
+        }
+
 
         // Find all relevant views that we will need to read user input from
         mNameEditText = (EditText) findViewById(R.id.edit_pet_name);
@@ -85,9 +90,7 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
         setupSpinner();
 
-        // Prepare the loader.  Either re-connect with an existing one,
-        // or start a new one.
-        getSupportLoaderManager().initLoader(PET_LOADER, null, this);
+
     }
 
     /**
@@ -129,9 +132,6 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
         });
     }
 
-    /**
-     * Get user input from editor and save new pet into database.
-     */
     /**
      * Get user input from editor and save new pet into database.
      */
@@ -222,11 +222,14 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
                 PetEntry.COLUMN_PET_BREED,
                 PetEntry.COLUMN_PET_GENDER,
                 PetEntry.COLUMN_PET_WEIGHT };
-        return new CursorLoader(this,PetEntry.CONTENT_URI,projection, null, null, null);
+        return new CursorLoader(this,mCurrentUri,projection, null, null, null);
     }
 
     @Override
     public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        if (cursor == null || cursor.getCount() <1){
+            return;
+        }
         // Proceed with moving to the first row of the cursor and reading data from it
         // (This should be the only row in the cursor)
         if (cursor.moveToFirst()) {
@@ -265,6 +268,10 @@ public class EditorActivity extends AppCompatActivity implements LoaderManager.L
 
     @Override
     public void onLoaderReset(Loader loader) {
+        mNameEditText.setText("");
+        mBreedEditText.setText("");
+        mWeightEditText.setText("");
+        mGenderSpinner.setSelection(0);
 
     }
 }
